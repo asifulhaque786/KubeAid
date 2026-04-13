@@ -14,7 +14,11 @@
             alert: 'VeleroUnsuccessfulBackup',
             expr: |||
               (
-                ((time() - velero_backup_last_successful_timestamp{schedule=~".*6hrly.*"}) + on(schedule) group_left velero_backup_attempt_total > (60 * 60 * 6) and ON() hour() >= 6.30 <= 18.30)
+                (
+                  (time() - velero_backup_last_successful_timestamp{schedule=~".*6hrly.*"} > (60 * 60 * 6))
+                  and on(schedule) (velero_backup_attempt_total{schedule=~".*6hrly.*"} > 0)
+                  and on() (hour() >= 6 and hour() <= 18)
+                )
                 or
                 ((time() - velero_backup_last_successful_timestamp{schedule=~".*daily.*"}) + on (schedule) group_left () velero_backup_attempt_total > (60 * 60 * 24) and on () day_of_week() != 0 and on () day_of_week() != 1)
                 or
