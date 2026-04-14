@@ -45,16 +45,6 @@
     {
       "source": {
         "git": {
-          "remote": "https://github.com/ceph/ceph.git",
-          "subdir": "monitoring/ceph-mixin"
-        }
-      },
-      "version": "ee74d4780d505e13a596d09c5a7be8244d8bb97d",
-      "sum": "ufVgGNSYLzuaS9DmMYVbQ9ZkYypir7YzWCiYUrGDSwc="
-    },
-    {
-      "source": {
-        "git": {
           "remote": "https://github.com/etcd-io/etcd.git",
           "subdir": "contrib/mixin"
         }
@@ -241,6 +231,16 @@
       },
       "version": "ab562f78ebf4cb97cc2f87c1235e457076035d16",
       "sum": "qclI7LwucTjBef3PkGBkKxF0mfZPbHnn4rlNWKGtR4c="
+    },
+    {
+      "source": {
+        "git": {
+          "remote": "https://github.com/obmondo/ceph.git",
+          "subdir": "monitoring/ceph-mixin"
+        }
+      },
+      "version": "751699c0a67b82783baddf6c476b0b84cc30a3df",
+      "sum": "ufVgGNSYLzuaS9DmMYVbQ9ZkYypir7YzWCiYUrGDSwc="
     },
     {
       "source": {
