@@ -5,7 +5,7 @@
 apiVersion: monitoring.coreos.com/v1
 kind: PodMonitor
 metadata:
-  name: {{ if .Values.global.postgresql.recover }}{{ .Values.global.postgresql.instanceName }}-recover{{ else }}{{ .Values.global.postgresql.instanceName }}{{ end }}
+  name: {{ if ((.Values.global.postgresql).recover).enabled }}{{ .Values.global.postgresql.instanceName }}-pgsql-recover{{ else }}{{ .Values.global.postgresql.instanceName }}-pgsql{{ end }}
   namespace: {{ .Release.Namespace }}
 spec:
   namespaceSelector:
@@ -13,7 +13,7 @@ spec:
       - {{ .Release.Namespace }}
   selector:
     matchLabels:
-      cnpg.io/cluster: {{ if .Values.global.postgresql.recover }}{{ .Values.global.postgresql.instanceName }}-recover{{ else }}{{ .Values.global.postgresql.instanceName }}{{ end }}
+      cnpg.io/cluster: {{ if ((.Values.global.postgresql).recover).enabled }}{{ .Values.global.postgresql.instanceName }}-pgsql-recover{{ else }}{{ .Values.global.postgresql.instanceName }}-pgsql{{ end }}
   podMetricsEndpoints:
     - port: metrics
       path: /metrics

@@ -1,0 +1,44 @@
+global:
+  netpol:
+    enabled: false
+  relate:
+    netpol: false
+
+  postgresql:
+    enabled: true
+
+    instanceName: relate
+    instances: 1
+
+    size: 5Gi
+    storageClass: rook-ceph-block
+
+    resources:
+      requests:
+        cpu: "128m"
+        memory: "256Mi"
+      limits:
+        cpu: "1"
+        memory: "1Gi"
+
+    revision: 1
+    backups:
+      enabled: true
+      provider: aws
+      destinationPath: s3://bucket-name
+
+      endpointURL: "https://s3.example.com"
+
+      retentionPolicy: 30d
+      schedule: "0 2 * * *"
+      aws:
+        enableKube2IAMIntegration: false
+    logicalbackup:
+      enabled: false
+      schedule: "0 2 * * *"
+      provider: s3
+      retention: "30d"
+
+    recover:
+      enabled: false
+    annotations: {}

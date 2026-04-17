@@ -27,35 +27,44 @@ sonarqube:
     jdbcUrl: "jdbc:postgresql://sonarqube-pgsql/sonarqube?socketTimeout=1500"
     jdbcUsername: sonarqube
 
-postgresql:
-  size: 4Gi
 
-cnpg:
-  enabled: false
-  revision: 0
-  instances: 1
-  size: 8Gi
-
-  resources:
-    requests:
-      cpu: 100m
-      memory: 500Mi
-    limits:
-      memory: 800Mi
-
-  recover:
+global:
+  netpol:
     enabled: false
+  sonarqube:
+    netpol: false
+
+  postgresql:
+    enabled: false
+    instanceName: sonarqube
     revision: 0
+    instances: 1
+    size: 8Gi
 
-  backups:
-    enabled: true
-    schedule: "0 0 0 * * *"
-    retentionPolicy: 30d
-    provider: aws
-    aws:
-      enableKube2IAMIntegration: true
+    resources:
+      requests:
+        cpu: 100m
+        memory: 500Mi
+      limits:
+        memory: 800Mi
+    logicalbackup:
+      enabled: false
+      schedule: "0 0 0 * * *"
+      provider: s3
+      retention: "30d"
 
-networkpolicies: false
+    recover:
+      enabled: false
+      revision: 0
+
+    backups:
+      enabled: true
+      schedule: "0 0 0 * * *"
+      retentionPolicy: 30d
+      provider: aws
+      aws:
+        enableKube2IAMIntegration: true
+
 
 blackbox:
   probe: true

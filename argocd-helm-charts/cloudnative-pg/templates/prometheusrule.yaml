@@ -23,11 +23,11 @@ spec:
             description: 'CloudNativePG cluster {{ "{{" }} $labels.cluster {{ "}}" }} in namespace {{ "{{" }} $labels.namespace {{ "}}" }} has not had a successful backup in more than {{ index .Values "cloudnative-pg" "monitoring" "prometheusRule" "backupMaxAgeSeconds" |  float64 | duration }} . This could mean backups are failing or not configured.'
           expr: |-
             (
-              (time() - cnpg_collector_last_available_backup_timestamp) > {{ index .Values "cloudnative-pg" "monitoring" "prometheusRule" "backupMaxAgeSeconds" }}
+              (time() - barman_cloud_cloudnative_pg_io_last_available_backup_timestamp) > {{ index .Values "cloudnative-pg" "monitoring" "prometheusRule" "backupMaxAgeSeconds" }}
             )
             or
             (
-              cnpg_collector_last_available_backup_timestamp == 0
+              barman_cloud_cloudnative_pg_io_last_available_backup_timestamp == 0
             )
           for: 5m
           labels:
@@ -73,7 +73,7 @@ spec:
             summary: CNPG cluster has limited point-in-time recovery window.
             description: 'CloudNativePG instance {{ "{{" }} $labels.pod {{ "}}" }} in namespace {{ "{{" }} $labels.namespace {{ "}}" }} can only recover data from {{ "{{" }} $value | humanizeTimestamp {{ "}}" }}. The recovery window is older than {{ index .Values "cloudnative-pg" "monitoring" "prometheusRule" "firstRecoverabilityPointMaxAgeSeconds" | float64 | duration }}.'
           expr: |-
-            (time() - cnpg_collector_first_recoverability_point) > {{ index .Values "cloudnative-pg" "monitoring" "prometheusRule" "firstRecoverabilityPointMaxAgeSeconds" }}
+            (time() - barman_cloud_cloudnative_pg_io_first_recoverability_point) > {{ index .Values "cloudnative-pg" "monitoring" "prometheusRule" "firstRecoverabilityPointMaxAgeSeconds" }}
           for: 30m
           labels:
             severity: warning
