@@ -127,46 +127,54 @@ cat $CHANGELOG_FILE | tail -n +5 > $CHANGELOG_FILE.tmp
 
 # Generate release notes file
 {
-  printf '%s\n' "## KubeAid Release Version ${NEW_TAG}\n"
+  printf '%s\n\n' "## KubeAid Release Version ${NEW_TAG}"
 
   if [ ${#NEW_CHARTS[@]} -gt 0 ]; then
-    printf "### New Charts Added\n"
-    printf '%s\n\n' "${NEW_CHARTS[@]}"
+    printf "### New Charts Added\n\n"
+    printf '%s\n' "${NEW_CHARTS[@]}"
+    printf '\n'
   fi
 
   if [ ${#MAJOR_CHART_UPDATES[@]} -gt 0 ]; then
-    printf "### Major Version Upgrades\n"
-    printf '%s\n\n' "${MAJOR_CHART_UPDATES[@]}"
+    printf "### Major Version Upgrades\n\n"
+    printf '%s\n' "${MAJOR_CHART_UPDATES[@]}"
+    printf '\n'
   fi
 
   if [ ${#MINOR_CHART_UPDATES[@]} -gt 0 ]; then
-    printf "### Minor Version Upgrades\n"
-    printf '%s\n\n' "${MINOR_CHART_UPDATES[@]}"
+    printf "### Minor Version Upgrades\n\n"
+    printf '%s\n' "${MINOR_CHART_UPDATES[@]}"
+    printf '\n'
   fi
 
   if [ ${#PATCH_CHART_UPDATES[@]} -gt 0 ]; then
-    printf "### Patch Version Upgrades\n"
-    printf '%s\n\n' "${PATCH_CHART_UPDATES[@]}"
+    printf "### Patch Version Upgrades\n\n"
+    printf '%s\n' "${PATCH_CHART_UPDATES[@]}"
+    printf '\n'
   fi
 
   if [ ${#FEATURES[@]} -gt 0 ]; then
-    printf "### Features\n"
-    printf '%s\n\n' "${FEATURES[@]}"
+    printf "### Features\n\n"
+    printf '%s\n' "${FEATURES[@]}"
+    printf '\n'
   fi
 
   if [ ${#BUG_FIXES[@]} -gt 0 ]; then
-    printf "### Bug Fixes\n"
-    printf '%s\n\n' "${BUG_FIXES[@]}"
+    printf "### Bug Fixes\n\n"
+    printf '%s\n' "${BUG_FIXES[@]}"
+    printf '\n'
   fi
 
   if [ ${#CONFIG_CHANGES[@]} -gt 0 ]; then
-    printf "### Configuration Changes\n"
-    printf '%s\n\n' "${CONFIG_CHANGES[@]}"
+    printf "### Configuration Changes\n\n"
+    printf '%s\n' "${CONFIG_CHANGES[@]}"
+    printf '\n'
   fi
 
   if [ ${#OTHER_CHANGES[@]} -gt 0 ]; then
-    printf "### Other Changes\n"
-    printf '%s\n\n' "${OTHER_CHANGES[@]}"
+    printf "### Other Changes\n\n"
+    printf '%s\n' "${OTHER_CHANGES[@]}"
+    printf '\n'
   fi
 
    # If no commits categorized, add a note
