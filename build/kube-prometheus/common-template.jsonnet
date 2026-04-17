@@ -21,7 +21,7 @@ assert std.length(_validationErrors) == 0 :
 local mixins = remove_nulls([
   addMixin(
     'ceph',
-    (import 'github.com/ceph/ceph/monitoring/ceph-mixin/mixin.libsonnet'),
+    (import 'github.com/obmondo/ceph/monitoring/ceph-mixin/mixin.libsonnet'),
     vars,
   ),
   addMixin(

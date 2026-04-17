@@ -13,7 +13,7 @@
     {
       "source": {
         "git": {
-          "remote": "https://github.com/ceph/ceph.git",
+          "remote": "https://github.com/obmondo/ceph.git",
           "subdir": "monitoring/ceph-mixin"
         }
       },
@@ -27,6 +27,15 @@
         }
       },
       "version": "master"
+    },
+    {
+      "source": {
+        "git": {
+          "remote": "https://github.com/obmondo/ceph.git",
+          "subdir": "monitoring/ceph-mixin"
+        }
+      },
+      "version": "main"
     },
     {
       "source": {
