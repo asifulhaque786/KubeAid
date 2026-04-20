@@ -1,11 +1,17 @@
-{{- if 
-    .Values.global.postgresql.monitoring.enablePodMonitor 
-}}
+{{- if and .Values.global.postgresql.enabled .Values.global.postgresql.monitoring.enablePodMonitor }}
 ---
 apiVersion: monitoring.coreos.com/v1
 kind: PodMonitor
 metadata:
-  name: {{ if ((.Values.global.postgresql).recover).enabled }}{{ .Values.global.postgresql.instanceName }}-pgsql-recover{{ else }}{{ .Values.global.postgresql.instanceName }}-pgsql{{ end }}
+  {{- $instanceName := .Values.global.postgresql.instanceName }}
+  {{- if not $instanceName }}
+  {{- fail "global.postgresql.instanceName is required and cannot be empty" }}
+  {{- end }}
+  {{- if .Values.global.postgresql.recover }}
+  name: {{ $instanceName }}-recover
+  {{- else }}
+  name: {{ $instanceName }}
+  {{- end }}
   namespace: {{ .Release.Namespace }}
 spec:
   namespaceSelector:
