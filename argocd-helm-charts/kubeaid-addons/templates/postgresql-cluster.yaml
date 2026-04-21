@@ -1,12 +1,22 @@
-{{- $postgresql := .Values.postgresql }}
+{{- if .Values.global.postgresql.enabled }}
+{{- $postgresql := .Values.global.postgresql }}
 
 apiVersion: postgresql.cnpg.io/v1
 kind: Cluster
 metadata:
-  name: keycloak-pgsql
+  name: {{ .Values.global.postgresql.instanceName }}-pgsql
+  {{- with $postgresql.annotations }}
+  annotations:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+  labels:
+    velero.io/exclude-from-backup: "true"
 
 spec:
   instances: {{ $postgresql.instances }}
+
+
+  imageName: ghcr.io/cloudnative-pg/postgresql:18.1-system-trixie
 
   {{- with $postgresql.resources }}
   resources:
@@ -21,35 +31,37 @@ spec:
 
   {{- if $postgresql.backups.enabled }}
   plugins:
-    - enabled: true
+    - name: barman-cloud.cloudnative-pg.io
       isWALArchiver: true
-      name: barman-cloud.cloudnative-pg.io
       parameters:
-        barmanObjectName: keycloak-pgsql-backups
+        barmanObjectName: {{ .Values.global.postgresql.instanceName }}-pgsql-backups
         serverName: "revision-{{ $postgresql.revision }}"
   {{- end }}
 
   bootstrap:
     {{- if $postgresql.recover.enabled }}
-    recovery: keycloak-pgsql
+    recovery:
+      source: {{ .Values.global.postgresql.instanceName }}-pgsql # FIXED: Changed from string to object with 'source'
     {{- else }}
     initdb:
-      database: keycloak
-      owner: keycloak
+      database: {{ .Values.global.postgresql.instanceName }}
+      owner: {{ .Values.global.postgresql.instanceName }}
     {{- end }}
 
   {{- if $postgresql.recover.enabled }}
   externalClusters:
-    - name: keycloak-pgsql
+    - name: {{ .Values.global.postgresql.instanceName }}-pgsql
       plugin:
         name: barman-cloud.cloudnative-pg.io
         parameters:
-          barmanObjectName: keycloak-pgsql-backups
+          barmanObjectName: {{ .Values.global.postgresql.instanceName }}-pgsql-backups
           serverName: "revision-{{ $postgresql.recover.revision }}"
   {{- end }}
+
   monitoring:
     enablePodMonitor: {{ if hasKey (default dict $postgresql.monitoring) "enablePodMonitor" }}{{ $postgresql.monitoring.enablePodMonitor }}{{ else }}{{ $postgresql.backups.enabled }}{{ end }}
     {{- $monitoringExtra := omit (default dict $postgresql.monitoring) "enablePodMonitor" }}
     {{- if $monitoringExtra }}
     {{- $monitoringExtra | toYaml | nindent 4 }}
     {{- end }}
+{{- end }}

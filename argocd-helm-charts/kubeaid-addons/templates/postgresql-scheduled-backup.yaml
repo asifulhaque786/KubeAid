@@ -1,0 +1,18 @@
+{{- if and .Values.global.postgresql.enabled .Values.global.postgresql.backups.enabled }}
+apiVersion: postgresql.cnpg.io/v1
+kind: ScheduledBackup
+metadata:
+  name: {{ .Values.global.postgresql.instanceName }}-pgsql
+
+spec:
+  cluster:
+    name: {{ .Values.global.postgresql.instanceName }}-pgsql
+
+  backupOwnerReference: self
+
+  schedule: {{ .Values.global.postgresql.backups.schedule }}
+
+  method: plugin
+  pluginConfiguration:
+    name: barman-cloud.cloudnative-pg.io
+{{- end }}

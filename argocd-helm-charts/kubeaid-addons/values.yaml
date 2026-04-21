@@ -97,16 +97,21 @@ global:
 
     # -- Set to true to bootstrap a cluster from an existing backup.
     # When enabled the cluster name gets a "-recover" suffix.
-    recover: false
+    recover:
+      enabled: false
 
     # -- Backup configuration via Barman object store.
-    backup:
+    backups:
       # -- Enable scheduled backups (daily at midnight, 30d retention).
       enabled: false
       # cloud: aws          # "aws" or "azure"
       # destinationPath: "" # e.g. s3://my-bucket/postgres
       # endpointURL: ""     # object store endpoint
       # secretName: ""      # Kubernetes Secret holding cloud credentials
+
+    # -- Logical backup configuration that uses ghcr.io/obmondo/logical-backup.
+    logicalbackup:
+      enabled: false
 
     # -- Client applications allowed to connect on port 5432.
     # Each entry is a map of pod label selectors for the client pod.
