@@ -1,0 +1,94 @@
+# Example values for the `hetzner` subchart of `capi-cluster`, rendered against
+# mode=hybrid (control-plane in HCloud, node-groups mixed HCloud + bare-metal).
+
+global:
+  clusterName: kubeaid-demo
+  kubernetes:
+    version: v1.33.0
+  pods:
+    cidrBlock: 10.244.0.0/16
+  # List of { name, sshPublicKey } entries to preload on every node.
+  additionalUsers: []
+
+# One of: hcloud | bare-metal | hybrid
+mode: hybrid
+
+cloudCredentialsSecretName: cloud-credentials
+
+sshKeyPair:
+  # HCloud SSH key resource name.
+  name: cluster-bootstrapper
+  # Kubernetes Secret carrying the key-pair.
+  secretName: hetzner-ssh-keypair
+
+hcloud:
+  zone: eu-central
+  cidrBlock: 10.0.0.0/16
+  subnetCidrBlock: 10.0.0.0/24
+  enableVSwitchIntegration: false
+  imageName: ubuntu-24.04
+
+bareMetal:
+  wipeDisks: false
+  # HCloud vSwitch VLAN ID; only consumed when mode=hybrid.
+  vSwitch:
+    vlanID: 4000
+  installImage:
+    imagePath: /root/.oldroot/nfs/images/Ubuntu-2404-noble-amd64-base.tar.gz
+    vg0:
+      size: 25
+      rootVolumeSize: 10
+
+controlPlane:
+  endpoint:
+    # Required only when loadBalancer.enabled is false (private-network scenario).
+    host: null
+  regions:
+    - fsn1
+    - nbg1
+    - hel1
+  hcloud:
+    machineType: cax11
+    replicas: 3
+    loadBalancer:
+      # Public apiserver LB. Set to false for a private-network deployment.
+      enabled: true
+      region: hel1
+
+nodeGroups:
+  hcloud:
+    - name: hcloud-workers
+      replicas: 2
+      minSize: 1
+      maxSize: 3
+      machineType: cax21
+      cpu: 4
+      # GiB
+      memory: 8
+      # GiB
+      rootVolumeSize: 40
+      regions:
+        - fsn1
+      labels:
+        node-role.kubernetes.io/worker: ""
+        node.cluster.x-k8s.io/nodegroup: hcloud-workers
+      taints: []
+
+  bareMetal:
+    - name: bm-workers
+      labels:
+        node-role.kubernetes.io/worker: ""
+        node.cluster.x-k8s.io/nodegroup: bm-workers
+      raid:
+        # mdraid level used on the OS volume.
+        level: 1
+      zfs:
+        # GiB reserved for the ZFS pool used by ephemeral storage.
+        size: 100
+      bareMetalHosts:
+        - serverID: 1866aff
+          # Host's address inside the HCloud private network.
+          privateIP: 10.0.1.10
+          wwns:
+            - '0x50000397cb700acd'
+            - '0x500003981be00179'

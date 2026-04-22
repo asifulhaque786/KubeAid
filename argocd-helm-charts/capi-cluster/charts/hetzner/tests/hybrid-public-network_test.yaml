@@ -1,0 +1,67 @@
+suite: hybrid mode, public control-plane load-balancer
+release:
+  name: capi-cluster-hetzner
+  namespace: default
+values:
+  - ../ci/values-hybrid-public-network.yaml
+
+tests:
+  - it: HetznerCluster declares a public load-balancer
+    template: HetznerCluster.yaml
+    asserts:
+      - equal:
+          path: spec.controlPlaneLoadBalancer.enabled
+          value: true
+      - equal:
+          path: spec.controlPlaneLoadBalancer.region
+          value: hel1
+
+  - it: HetznerCluster still declares the cluster's HCloud private network
+    template: HetznerCluster.yaml
+    asserts:
+      - equal:
+          path: spec.hcloudNetwork.enabled
+          value: true
+      - equal:
+          path: spec.hcloudNetwork.cidrBlock
+          value: 10.0.0.0/16
+
+  - it: HCloudMachineTemplate for the control-plane
+    template: HCloudMachineTemplate.yaml
+    documentIndex: 0
+    asserts:
+      - isKind:
+          of: HCloudMachineTemplate
+      - equal:
+          path: metadata.name
+          value: capi-hybrid-public-control-plane
+
+  - it: HCloudMachineTemplate for the HCloud node-group
+    template: HCloudMachineTemplate.yaml
+    documentIndex: 1
+    asserts:
+      - isKind:
+          of: HCloudMachineTemplate
+      - equal:
+          path: metadata.name
+          value: capi-hybrid-public-hcloud-workers
+
+  - it: HetznerBareMetalMachine for the bare-metal node-group host
+    template: HetznerBareMetalMachine.yaml
+    documentIndex: 0
+    asserts:
+      - isKind:
+          of: HetznerBareMetalMachine
+      - equal:
+          path: metadata.name
+          value: capi-hybrid-public-bm-workers-1866aff
+
+  - it: HetznerBareMetalHost for the bare-metal node-group host
+    template: HetznerBareMetalHost.yaml
+    documentIndex: 0
+    asserts:
+      - isKind:
+          of: HetznerBareMetalHost
+      - equal:
+          path: metadata.name
+          value: "1866aff"
