@@ -1,0 +1,84 @@
+# Scenario: hybrid mode, public control-plane load-balancer.
+# HCloud provisions a public load-balancer that fronts the apiserver. No
+# pre-provisioned endpoint host is required.
+global:
+  clusterName: capi-hybrid-public
+  kubernetes:
+    version: v1.33.0
+  pods:
+    cidrBlock: 10.244.0.0/16
+  additionalUsers: []
+
+mode: hybrid
+
+cloudCredentialsSecretName: cloud-credentials
+
+sshKeyPair:
+  name: cluster-bootstrapper
+  secretName: hetzner-ssh-keypair
+
+hcloud:
+  zone: eu-central
+  cidrBlock: 10.0.0.0/16
+  subnetCidrBlock: 10.0.0.0/24
+  enableVSwitchIntegration: false
+  imageName: ubuntu-24.04
+
+bareMetal:
+  wipeDisks: false
+  vSwitch:
+    vlanID: 4000
+  installImage:
+    imagePath: /root/.oldroot/nfs/images/Ubuntu-2404-noble-amd64-base.tar.gz
+    vg0:
+      size: 25
+      rootVolumeSize: 10
+
+controlPlane:
+  endpoint:
+    # Unused in this scenario - HCloud LB provides the endpoint.
+    host: null
+  regions:
+    - fsn1
+    - nbg1
+    - hel1
+  hcloud:
+    machineType: cax11
+    replicas: 3
+    loadBalancer:
+      # PUBLIC scenario: HCloud provisions a public load-balancer.
+      enabled: true
+      region: hel1
+
+nodeGroups:
+  hcloud:
+    - name: hcloud-workers
+      replicas: 2
+      minSize: 1
+      maxSize: 3
+      machineType: cax21
+      cpu: 4
+      memory: 8
+      rootVolumeSize: 40
+      regions:
+        - fsn1
+      labels:
+        node-role.kubernetes.io/worker: ""
+        node.cluster.x-k8s.io/nodegroup: hcloud-workers
+      taints: []
+
+  bareMetal:
+    - name: bm-workers
+      labels:
+        node-role.kubernetes.io/worker: ""
+        node.cluster.x-k8s.io/nodegroup: bm-workers
+      raid:
+        level: 1
+      zfs:
+        size: 100
+      bareMetalHosts:
+        - serverID: 1866aff
+          privateIP: 10.0.1.10
+          wwns:
+            - '0x50000397cb700acd'
+            - '0x500003981be00179'

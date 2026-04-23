@@ -1,35 +1,181 @@
+# @schema
+# type: string
+# enum: [hcloud, bare-metal, hybrid]
+# description: |
+#   Hetzner deployment mode:
+#     hcloud     - control-plane and node-groups all in HCloud.
+#     bare-metal - control-plane and node-groups all on dedicated Hetzner servers.
+#     hybrid     - control-plane in HCloud, node-groups mixed HCloud + Hetzner bare-metal.
+# @schema
+mode: hcloud
+
+# @schema
+# type: string
+# minLength: 1
+# description: Name of the Kubernetes Secret holding HCloud token and (for bare-metal/hybrid) Hetzner Robot user/password.
+# @schema
 cloudCredentialsSecretName: cloud-credentials
 
 sshKeyPair:
+  # @schema
+  # type: string
+  # minLength: 1
+  # description: Name of the HCloud SSH key resource ClusterAPI will reference.
+  # @schema
   name: cluster-bootstrapper
+  # @schema
+  # type: string
+  # minLength: 1
+  # description: Kubernetes Secret name holding the SSH key-pair (keys sshkey-name / ssh-privatekey / ssh-publickey).
+  # @schema
   secretName: hetzner-ssh-keypair
 
 hcloud:
+  # @schema
+  # type: string
+  # enum: [eu-central, us-east, us-west, ap-southeast]
+  # description: HCloud network zone the cluster's private network lives in.
+  # @schema
   zone: eu-central
+  # @schema
+  # type: string
+  # pattern: ^[0-9.]+/[0-9]+$
+  # description: CIDR block for the HCloud private network the cluster runs on.
+  # @schema
+  cidrBlock: 10.0.0.0/16
+  # @schema
+  # type: string
+  # pattern: ^[0-9.]+/[0-9]+$
+  # description: CIDR block for the HCloud subnet servers attach to.
+  # @schema
+  subnetCidrBlock: 10.0.0.0/24
+  # @schema
+  # type: boolean
+  # description: Attach an HCloud vSwitch (for connecting bare-metal servers to the HCloud private network).
+  # @schema
   enableVSwitchIntegration: false
+  # @schema
+  # type: string
+  # minLength: 1
+  # description: HCloud image name used when provisioning HCloud machines.
+  # @schema
   imageName: ubuntu-24.04
 
 bareMetal:
+  # @schema
+  # type: boolean
+  # description: When true, wipe all disks on bare-metal hosts before installation (annotates HetznerBareMetalHost with capi.syself.com/wipe-disk=all).
+  # @schema
   wipeDisks: false
+
+  # @schema
+  # type: [object, "null"]
+  # additionalProperties: true
+  # description: |
+  #   HCloud vSwitch config used in mode=hybrid to attach bare-metal hosts to the HCloud private network.
+  #   Shape: { vlanID: <int> }. Only consumed when mode=hybrid.
+  # @schema
+  vSwitch: null
+
   installImage:
+    # @schema
+    # type: string
+    # minLength: 1
+    # description: Path on the rescue system to the OS image tarball.
+    # @schema
     imagePath: /root/.oldroot/nfs/images/Ubuntu-2404-noble-amd64-base.tar.gz
     vg0:
+      # @schema
+      # type: integer
+      # minimum: 1
+      # description: Size (GiB) of the vg0 LVM volume group.
+      # @schema
       size: 25
+      # @schema
+      # type: integer
+      # minimum: 1
+      # description: Size (GiB) of the root logical volume carved from vg0.
+      # @schema
       rootVolumeSize: 10
 
 controlPlane:
+  endpoint:
+    # @schema
+    # type: [string, "null"]
+    # description: |
+    #   Pre-provisioned control-plane endpoint host (floating IP, VPN-reachable IP, etc.).
+    #   Required when controlPlane.hcloud.loadBalancer.enabled is false. Ignored otherwise.
+    # @schema
+    host: null
+
+  # @schema
+  # type: array
+  # items: { type: string, minLength: 1 }
+  # minItems: 1
+  # description: HCloud regions the control-plane is spread across.
+  # @schema
   regions:
     - fsn1
     - nbg1
     - hel1
 
   hcloud:
+    # @schema
+    # type: string
+    # minLength: 1
+    # description: HCloud machine type for control-plane nodes (e.g. cax11, cpx31).
+    # @schema
     machineType: cax11
+    # @schema
+    # type: integer
+    # minimum: 1
+    # description: Desired number of control-plane replicas.
+    # @schema
     replicas: 3
     loadBalancer:
+      # @schema
+      # type: boolean
+      # description: |
+      #   If true, HCloud provisions a public load-balancer fronting the apiserver (public-network scenario).
+      #   If false, the control-plane is reached via controlPlane.endpoint.host (private-network scenario).
+      # @schema
       enabled: true
+      # @schema
+      # type: string
+      # description: HCloud region the load-balancer is placed in. Only meaningful when enabled=true.
+      # @schema
       region: hel1
 
+  # @schema
+  # type: [object, "null"]
+  # additionalProperties: true
+  # description: |
+  #   Control-plane configuration for mode=bare-metal. Shape:
+  #     bareMetalHosts: [{ serverID, wwns: [ "0x..." ] }]
+  #     raid: { level: 1 }
+  # @schema
+  bareMetal: null
+
 nodeGroups:
-  bareMetal: []
+  # @schema
+  # type: array
+  # items:
+  #   type: object
+  #   additionalProperties: true
+  # description: |
+  #   HCloud node-groups. Item shape:
+  #     name, replicas, minSize, maxSize, machineType, cpu, memory, rootVolumeSize,
+  #     labels (map), taints (array of {key,value,effect}).
+  # @schema
   hcloud: []
+
+  # @schema
+  # type: array
+  # items:
+  #   type: object
+  #   additionalProperties: true
+  # description: |
+  #   Bare-metal node-groups. Item shape:
+  #     name, labels (map), bareMetalHosts: [{ serverID, wwns: [ "0x..." ] }].
+  # @schema
+  bareMetal: []

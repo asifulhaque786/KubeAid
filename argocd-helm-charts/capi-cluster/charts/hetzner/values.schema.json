@@ -1,0 +1,295 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "additionalProperties": false,
+  "properties": {
+    "bareMetal": {
+      "additionalProperties": false,
+      "properties": {
+        "installImage": {
+          "additionalProperties": false,
+          "properties": {
+            "imagePath": {
+              "default": "/root/.oldroot/nfs/images/Ubuntu-2404-noble-amd64-base.tar.gz",
+              "description": "Path on the rescue system to the OS image tarball.",
+              "minLength": 1,
+              "title": "imagePath",
+              "type": "string"
+            },
+            "vg0": {
+              "additionalProperties": false,
+              "properties": {
+                "rootVolumeSize": {
+                  "default": 10,
+                  "description": "Size (GiB) of the root logical volume carved from vg0.",
+                  "minimum": 1,
+                  "title": "rootVolumeSize",
+                  "type": "integer"
+                },
+                "size": {
+                  "default": 25,
+                  "description": "Size (GiB) of the vg0 LVM volume group.",
+                  "minimum": 1,
+                  "title": "size",
+                  "type": "integer"
+                }
+              },
+              "required": [],
+              "title": "vg0",
+              "type": "object"
+            }
+          },
+          "required": [
+            "vg0"
+          ],
+          "title": "installImage",
+          "type": "object"
+        },
+        "vSwitch": {
+          "additionalProperties": true,
+          "default": "null",
+          "description": "HCloud vSwitch config used in mode=hybrid to attach bare-metal hosts to the HCloud private network.\nShape: { vlanID: \u003cint\u003e }. Only consumed when mode=hybrid.",
+          "required": [],
+          "title": "vSwitch",
+          "type": [
+            "object",
+            "null"
+          ]
+        },
+        "wipeDisks": {
+          "default": false,
+          "description": "When true, wipe all disks on bare-metal hosts before installation (annotates HetznerBareMetalHost with capi.syself.com/wipe-disk=all).",
+          "title": "wipeDisks",
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "installImage"
+      ],
+      "title": "bareMetal",
+      "type": "object"
+    },
+    "cloudCredentialsSecretName": {
+      "default": "cloud-credentials",
+      "description": "Name of the Kubernetes Secret holding HCloud token and (for bare-metal/hybrid) Hetzner Robot user/password.",
+      "minLength": 1,
+      "title": "cloudCredentialsSecretName",
+      "type": "string"
+    },
+    "controlPlane": {
+      "additionalProperties": false,
+      "properties": {
+        "bareMetal": {
+          "additionalProperties": true,
+          "default": "null",
+          "description": "Control-plane configuration for mode=bare-metal. Shape:\n  bareMetalHosts: [{ serverID, wwns: [ \"0x...\" ] }]\n  raid: { level: 1 }",
+          "required": [],
+          "title": "bareMetal",
+          "type": [
+            "object",
+            "null"
+          ]
+        },
+        "endpoint": {
+          "additionalProperties": false,
+          "properties": {
+            "host": {
+              "default": "null",
+              "description": "Pre-provisioned control-plane endpoint host (floating IP, VPN-reachable IP, etc.).\nRequired when controlPlane.hcloud.loadBalancer.enabled is false. Ignored otherwise.",
+              "required": [],
+              "title": "host",
+              "type": [
+                "string",
+                "null"
+              ]
+            }
+          },
+          "required": [],
+          "title": "endpoint",
+          "type": "object"
+        },
+        "hcloud": {
+          "additionalProperties": false,
+          "properties": {
+            "loadBalancer": {
+              "additionalProperties": false,
+              "properties": {
+                "enabled": {
+                  "default": true,
+                  "description": "If true, HCloud provisions a public load-balancer fronting the apiserver (public-network scenario).\nIf false, the control-plane is reached via controlPlane.endpoint.host (private-network scenario).",
+                  "title": "enabled",
+                  "type": "boolean"
+                },
+                "region": {
+                  "default": "hel1",
+                  "description": "HCloud region the load-balancer is placed in. Only meaningful when enabled=true.",
+                  "title": "region",
+                  "type": "string"
+                }
+              },
+              "required": [],
+              "title": "loadBalancer",
+              "type": "object"
+            },
+            "machineType": {
+              "default": "cax11",
+              "description": "HCloud machine type for control-plane nodes (e.g. cax11, cpx31).",
+              "minLength": 1,
+              "title": "machineType",
+              "type": "string"
+            },
+            "replicas": {
+              "default": 3,
+              "description": "Desired number of control-plane replicas.",
+              "minimum": 1,
+              "title": "replicas",
+              "type": "integer"
+            }
+          },
+          "required": [
+            "loadBalancer"
+          ],
+          "title": "hcloud",
+          "type": "object"
+        },
+        "regions": {
+          "description": "HCloud regions the control-plane is spread across.",
+          "items": {
+            "minLength": 1,
+            "type": "string"
+          },
+          "minItems": 1,
+          "title": "regions",
+          "type": "array"
+        }
+      },
+      "required": [
+        "endpoint",
+        "hcloud"
+      ],
+      "title": "controlPlane",
+      "type": "object"
+    },
+    "global": {
+      "description": "Global values are values that can be accessed from any chart or subchart by exactly the same name.",
+      "required": [],
+      "title": "global",
+      "type": "object"
+    },
+    "hcloud": {
+      "additionalProperties": false,
+      "properties": {
+        "cidrBlock": {
+          "default": "10.0.0.0/16",
+          "description": "CIDR block for the HCloud private network the cluster runs on.",
+          "pattern": "^[0-9.]+/[0-9]+$",
+          "title": "cidrBlock",
+          "type": "string"
+        },
+        "enableVSwitchIntegration": {
+          "default": false,
+          "description": "Attach an HCloud vSwitch (for connecting bare-metal servers to the HCloud private network).",
+          "title": "enableVSwitchIntegration",
+          "type": "boolean"
+        },
+        "imageName": {
+          "default": "ubuntu-24.04",
+          "description": "HCloud image name used when provisioning HCloud machines.",
+          "minLength": 1,
+          "title": "imageName",
+          "type": "string"
+        },
+        "subnetCidrBlock": {
+          "default": "10.0.0.0/24",
+          "description": "CIDR block for the HCloud subnet servers attach to.",
+          "pattern": "^[0-9.]+/[0-9]+$",
+          "title": "subnetCidrBlock",
+          "type": "string"
+        },
+        "zone": {
+          "default": "eu-central",
+          "description": "HCloud network zone the cluster's private network lives in.",
+          "enum": [
+            "eu-central",
+            "us-east",
+            "us-west",
+            "ap-southeast"
+          ],
+          "title": "zone",
+          "type": "string"
+        }
+      },
+      "required": [],
+      "title": "hcloud",
+      "type": "object"
+    },
+    "mode": {
+      "default": "hcloud",
+      "description": "Hetzner deployment mode:\n  hcloud     - control-plane and node-groups all in HCloud.\n  bare-metal - control-plane and node-groups all on dedicated Hetzner servers.\n  hybrid     - control-plane in HCloud, node-groups mixed HCloud + Hetzner bare-metal.",
+      "enum": [
+        "hcloud",
+        "bare-metal",
+        "hybrid"
+      ],
+      "title": "mode",
+      "type": "string"
+    },
+    "nodeGroups": {
+      "additionalProperties": false,
+      "properties": {
+        "bareMetal": {
+          "description": "Bare-metal node-groups. Item shape:\n  name, labels (map), bareMetalHosts: [{ serverID, wwns: [ \"0x...\" ] }].",
+          "items": {
+            "additionalProperties": true,
+            "required": [],
+            "type": "object"
+          },
+          "title": "bareMetal",
+          "type": "array"
+        },
+        "hcloud": {
+          "description": "HCloud node-groups. Item shape:\n  name, replicas, minSize, maxSize, machineType, cpu, memory, rootVolumeSize,\n  labels (map), taints (array of {key,value,effect}).",
+          "items": {
+            "additionalProperties": true,
+            "required": [],
+            "type": "object"
+          },
+          "title": "hcloud",
+          "type": "array"
+        }
+      },
+      "required": [],
+      "title": "nodeGroups",
+      "type": "object"
+    },
+    "sshKeyPair": {
+      "additionalProperties": false,
+      "properties": {
+        "name": {
+          "default": "cluster-bootstrapper",
+          "description": "Name of the HCloud SSH key resource ClusterAPI will reference.",
+          "minLength": 1,
+          "title": "name",
+          "type": "string"
+        },
+        "secretName": {
+          "default": "hetzner-ssh-keypair",
+          "description": "Kubernetes Secret name holding the SSH key-pair (keys sshkey-name / ssh-privatekey / ssh-publickey).",
+          "minLength": 1,
+          "title": "secretName",
+          "type": "string"
+        }
+      },
+      "required": [],
+      "title": "sshKeyPair",
+      "type": "object"
+    }
+  },
+  "required": [
+    "sshKeyPair",
+    "hcloud",
+    "bareMetal",
+    "controlPlane",
+    "nodeGroups"
+  ],
+  "type": "object"
+}

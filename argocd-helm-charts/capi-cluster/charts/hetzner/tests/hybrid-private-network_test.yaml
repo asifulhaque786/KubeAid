@@ -1,0 +1,90 @@
+suite: hybrid mode, private control-plane network
+release:
+  name: capi-cluster-hetzner
+  namespace: default
+values:
+  - ../ci/values-hybrid-private-network.yaml
+
+tests:
+  - it: renders HetznerCluster
+    template: HetznerCluster.yaml
+    asserts:
+      - isKind:
+          of: HetznerCluster
+      - equal:
+          path: metadata.name
+          value: capi-hybrid-private
+
+  - it: HetznerCluster omits controlPlaneLoadBalancer when loadBalancer.enabled is false
+    template: HetznerCluster.yaml
+    asserts:
+      - notExists:
+          path: spec.controlPlaneLoadBalancer
+      - equal:
+          path: spec.controlPlaneEndpoint.host
+          value: 10.0.0.10
+      - equal:
+          path: spec.controlPlaneEndpoint.port
+          value: 6443
+
+  - it: HetznerCluster still declares the cluster's HCloud private network
+    template: HetznerCluster.yaml
+    asserts:
+      - equal:
+          path: spec.hcloudNetwork.enabled
+          value: true
+      - equal:
+          path: spec.hcloudNetwork.cidrBlock
+          value: 10.0.0.0/16
+      - equal:
+          path: spec.hcloudNetwork.networkZone
+          value: eu-central
+
+  - it: renders an HCloudMachineTemplate for the hybrid control-plane
+    template: HCloudMachineTemplate.yaml
+    documentIndex: 0
+    asserts:
+      - isKind:
+          of: HCloudMachineTemplate
+      - equal:
+          path: metadata.name
+          value: capi-hybrid-private-control-plane
+      - equal:
+          path: spec.template.spec.type
+          value: cax11
+      - equal:
+          path: spec.template.spec.imageName
+          value: ubuntu-24.04
+
+  - it: renders an HCloudMachineTemplate for the HCloud node-group
+    template: HCloudMachineTemplate.yaml
+    documentIndex: 1
+    asserts:
+      - isKind:
+          of: HCloudMachineTemplate
+      - equal:
+          path: metadata.name
+          value: capi-hybrid-private-hcloud-workers
+      - equal:
+          path: spec.template.spec.type
+          value: cax21
+
+  - it: renders a HetznerBareMetalMachine for each bare-metal node-group host
+    template: HetznerBareMetalMachine.yaml
+    documentIndex: 0
+    asserts:
+      - isKind:
+          of: HetznerBareMetalMachine
+      - equal:
+          path: metadata.name
+          value: capi-hybrid-private-bm-workers-1866aff
+
+  - it: renders a HetznerBareMetalHost for each bare-metal node-group host
+    template: HetznerBareMetalHost.yaml
+    documentIndex: 0
+    asserts:
+      - isKind:
+          of: HetznerBareMetalHost
+      - equal:
+          path: metadata.name
+          value: "1866aff"
