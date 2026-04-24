@@ -1,0 +1,18 @@
+Trivy Operator is now installed and continuously scanning workloads in
+namespaces matching the chart's selector.
+
+Inspect findings:
+  kubectl get vulnerabilityreports -A
+  kubectl get configauditreports -A
+  kubectl get exposedsecretreports -A
+
+Prometheus metrics (assuming ServiceMonitor is picked up):
+  trivy_image_vulnerabilities{severity="Critical"}
+  trivy_image_vulnerabilities_id{cve_id="CVE-..."}
+
+Default alert rules shipped with this chart:
+  - TrivyCriticalCVEInProduction
+  - TrivyOperatorScannerStuck
+
+Disable alert rules: set kubeaid.prometheusRule.enabled=false
+Tune scope:           set trivy-operator.excludeNamespaces / targetNamespaces

@@ -1,0 +1,62 @@
+{{- if .Values.kubeaid.prometheusRule.enabled }}
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: {{ include "trivy-operator-wrapper.fullname" . }}-cve-alerts
+  labels:
+    {{- include "trivy-operator-wrapper.labels" . | nindent 4 }}
+    {{- with .Values.kubeaid.prometheusRule.additionalLabels }}
+    {{- toYaml . | nindent 4 }}
+    {{- end }}
+  {{- with .Values.kubeaid.prometheusRule.additionalAnnotations }}
+  annotations:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+spec:
+  groups:
+    - name: trivy-operator.recording
+      rules:
+        # Reshape trivy_vulnerability_id labels to match version-checker's
+        # naming (`image`, `current_version`) so the two metrics can be
+        # joined in alert expressions without inline label_join/label_replace
+        # gymnastics.
+        - record: record::trivy::vulnerability_count::by_image
+          expr: |
+            label_replace(
+              label_join(
+                count by (image_registry, image_repository, image_tag, severity, namespace) (
+                  trivy_vulnerability_id{severity=~"Critical|High", fixed_version!=""}
+                ),
+                "image", "/", "image_registry", "image_repository"
+              ),
+              "current_version", "$1", "image_tag", "(.+)"
+            )
+
+    - name: trivy-operator.cve
+      rules:
+        - alert: ImageOutdatedAndVulnerable
+          expr: |
+            (
+              record::trivy::vulnerability_count::by_image
+              + on (image, current_version) group_left(latest_version)
+                sum by (image, current_version, latest_version) (
+                  version_checker_is_latest_version == 0
+                )
+            ) > 0
+          for: 6h
+          labels:
+            severity: critical
+          annotations:
+            summary: "{{ "{{ $labels.image }}:{{ $labels.current_version }}" }} has fixable CVEs AND newer tag {{ "{{ $labels.latest_version }}" }} available"
+            description: "Image {{ "{{ $labels.image }}:{{ $labels.current_version }}" }} (ns {{ "{{ $labels.namespace }}" }}) has {{ "{{ $value }}" }} {{ "{{ $labels.severity }}" }} CVE(s) reported. Newer tag {{ "{{ $labels.latest_version }}" }} exists in registry. Please update the image"
+
+        - alert: TrivyOperatorScannerStuck
+          expr: |
+            (time() - trivy_resource_last_scan_timestamp_seconds) > 86400
+          for: 1h
+          labels:
+            severity: warning
+          annotations:
+            summary: "Trivy Operator has not scanned {{ "{{ $labels.namespace }}/{{ $labels.name }}" }} in over a day"
+            description: "Last successful scan timestamp is older than 24h. Operator or trivy-server may be unhealthy."
+{{- end }}
