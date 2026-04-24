@@ -609,7 +609,7 @@ local kp =
             volumeClaimTemplate: {
               metadata: {
                 labels: {
-                  'velero.io/exclude-from-backup': 'true'
+                  'velero.io/exclude-from-backup': 'true',
                 },
               },
               spec: {
