@@ -271,7 +271,17 @@ local kp =
                 values: scrape_namespaces,
               }],
           },
-        } + if std.objectHas(vars.prometheus, 'remoteWrite') then (
+        } + (
+          // Opt-in remote-write receiver + wider TSDB out-of-order window
+          // for backdated samples (migrations, backfills). Off by default.
+          local rwr = std.get(vars.prometheus, 'remoteWriteReceiver', {});
+          if std.get(rwr, 'enabled', false) then {
+            enableRemoteWriteReceiver: true,
+            tsdb+: {
+              outOfOrderTimeWindow: std.get(rwr, 'outOfOrderTimeWindow', '7d'),
+            },
+          } else {}
+        ) + if std.objectHas(vars.prometheus, 'remoteWrite') then (
           {
             remoteWrite+: [
               local defaults = {
