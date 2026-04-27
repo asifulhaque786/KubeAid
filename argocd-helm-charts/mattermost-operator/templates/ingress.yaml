@@ -6,7 +6,6 @@ kind: Ingress
 metadata:
   name: webchat-mattermost-team-edition
   annotations:
-    nginx.ingress.kubernetes.io/ssl-redirect: "true"
     kubernetes.io/tls-acme: "true"
     cert-manager.io/cluster-issuer: letsencrypt
     kubernetes.io/ingress.class: traefik-cert-manager
