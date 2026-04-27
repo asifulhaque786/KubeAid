@@ -1,6 +1,14 @@
 # KubeAid Documentation
 
-Welcome to the KubeAid documentation. This is the central hub for all KubeAid guides and references.
+Welcome to the KubeAid documentation.
+
+**KubeAid gives you one way to install and operate Kubernetes on any cloud (or your own servers)**, with GitOps,
+security, monitoring, and compliance built in from day one. It uses [Cluster API](https://cluster-api.sigs.k8s.io/) to
+unify installation across providers, ships 100+ curated Helm charts with best-practice defaults, and maps its security
+posture to ISO 27001:2022.
+
+→ New here? Start with [**Why KubeAid?**](./kubeaid/why-kubeaid.md) to understand the problem we solve, then follow the
+[**Getting Started Guide**](./getting-started/README.md) to deploy your first cluster.
 
 ## Table of Contents
 
