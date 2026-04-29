@@ -14,8 +14,10 @@ posture to ISO 27001:2022.
 
 ### Getting Started
 
+<!-- markdownlint-disable MD013 -->
 > 🎬 **[Watch the Installation Video](https://drive.google.com/file/d/1d9EdghntjDoJRkCHj-DeRiEMfQ4xjBbw/view?usp=sharing)** -
 a step-by-step walkthrough of setting up KubeAid via KubeAid-cli.
+<!-- markdownlint-enable MD013 -->
 
 The complete installation guide for setting up a KubeAid-managed Kubernetes cluster:
 

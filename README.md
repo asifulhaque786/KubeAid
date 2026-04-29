@@ -148,6 +148,7 @@ project, namely to allow everyone to work on a level playing ground.
 
 ## Feature Goals
 
+<!-- markdownlint-disable MD033 -->
 <details>
 <summary>Click to expand the full feature list</summary>
 
@@ -176,6 +177,7 @@ project, namely to allow everyone to work on a level playing ground.
   new vulnerabilities are constantly being discovered)
 
 </details>
+<!-- markdownlint-enable MD033 -->
 
 ## Technical Details on the Features
 
