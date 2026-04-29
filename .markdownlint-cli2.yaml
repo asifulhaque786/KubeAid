@@ -13,3 +13,4 @@ ignores:
   - 'build/vendor/**'
   - 'build/kube-prometheus/**'
   - 'build/opendesk/**'
+  - '.release-notes.md'
