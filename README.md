@@ -9,7 +9,9 @@ Best practices differ *dramatically*, and that's just installation.
 **KubeAid gives you one way to install and operate Kubernetes on any cloud (or your own servers)**, with GitOps,
 security, monitoring, and compliance built in from day one.
 
-→ [**Why KubeAid?**](./docs/kubeaid/why-kubeaid.md) · [**Getting Started**](./docs/getting-started/README.md) · [**Full Documentation**](./docs/README.md)
+→ [**Why KubeAid?**](./docs/kubeaid/why-kubeaid.md)
+· [**Getting Started**](./docs/getting-started/README.md)
+· [**Full Documentation**](./docs/README.md)
 
 -----------------
 
@@ -102,7 +104,8 @@ customisations. The [Getting Started Guide](./docs/getting-started/README.md) ex
 
 ## Installation
 
-> 🎬 **[Watch the Installation Video](https://drive.google.com/file/d/1d9EdghntjDoJRkCHj-DeRiEMfQ4xjBbw/view?usp=sharing)** - a step-by-step walkthrough of setting up KubeAid via KubeAid-cli.
+> 🎬 **[Watch the Installation Video](https://drive.google.com/file/d/1d9EdghntjDoJRkCHj-DeRiEMfQ4xjBbw/view?usp=sharing)**-
+a step-by-step walkthrough of setting up KubeAid via KubeAid-cli.
 
 For complete installation instructions, see the **[Getting Started Guide](./docs/getting-started/README.md)** which
 includes:
@@ -145,6 +148,7 @@ project, namely to allow everyone to work on a level playing ground.
 
 ## Feature Goals
 
+<!-- markdownlint-disable MD033 -->
 <details>
 <summary>Click to expand the full feature list</summary>
 
@@ -173,6 +177,7 @@ project, namely to allow everyone to work on a level playing ground.
   new vulnerabilities are constantly being discovered)
 
 </details>
+<!-- markdownlint-enable MD033 -->
 
 ## Technical Details on the Features
 
