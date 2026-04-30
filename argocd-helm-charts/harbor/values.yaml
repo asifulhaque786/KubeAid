@@ -10,7 +10,7 @@ global:
     instanceName: harbor
     monitoring:
       enablePodMonitor: true
-    instances: 1
+    instances: 2
     size: 3Gi
     recover:
       enabled: false
