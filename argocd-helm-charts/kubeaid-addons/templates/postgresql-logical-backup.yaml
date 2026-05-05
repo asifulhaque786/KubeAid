@@ -1,4 +1,3 @@
-{{- if ((.Values.global).postgresql).logicalbackup }}
 {{- if (((.Values.global).postgresql).logicalbackup).enabled }}
 ---
 apiVersion: batch/v1
@@ -7,6 +6,7 @@ metadata:
   name: postgres-logical-backup
 spec:
   concurrencyPolicy: Forbid
+  suspend: false
   failedJobsHistoryLimit: 1
   schedule: {{ (((.Values.global).postgresql).logicalbackup).schedule | default "30 00 * * *" | quote }}
   successfulJobsHistoryLimit: 3
@@ -19,7 +19,7 @@ spec:
         spec:
           containers:
             - name: logical-backup
-              image: ghcr.io/obmondo/postgres-logical-backup:3.1.8
+              image: "{{ (((.Values.global).postgresql).logicalbackup).image.repository | default "ghcr.io/obmondo/postgres-logical-backup" }}:{{ (((.Values.global).postgresql).logicalbackup).image.tag | default "3.1.8" }}"
               imagePullPolicy: IfNotPresent
               env:
                 - name: POD_NAMESPACE
@@ -61,6 +61,8 @@ spec:
                   value: {{ (((.Values.global).postgresql).logicalbackup).s3bucketscopesuffix | default "logicalbackup" | quote }}
 
               {{- else if eq (((.Values.global).postgresql).logicalbackup).provider "s3" }}
+                - name: LOGICAL_BACKUP_PROVIDER
+                  value: "s3"
                 - name: AWS_ACCESS_KEY_ID
                   valueFrom:
                     secretKeyRef:
@@ -73,8 +75,6 @@ spec:
                       name: {{ ((.Values.global).postgresql).instanceName }}-postgres-pod-env
                 - name: LOGICAL_BACKUP_S3_ENDPOINT
                   value: {{ (((.Values.global).postgresql).logicalbackup).s3endpoint | quote }}
-                - name: LOGICAL_BACKUP_PROVIDER
-                  value: "s3"
                 - name: LOGICAL_BACKUP_S3_BUCKET_SCOPE_SUFFIX
                   value: {{ (((.Values.global).postgresql).logicalbackup).s3bucketscopesuffix | default "logicalbackup" | quote }}
                 - name: LOGICAL_BACKUP_S3_REGION
@@ -106,5 +106,4 @@ spec:
           dnsPolicy: ClusterFirst
           restartPolicy: Never
           terminationGracePeriodSeconds: 300
-{{- end }}
 {{- end }}
