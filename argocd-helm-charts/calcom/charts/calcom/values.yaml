@@ -59,20 +59,4 @@ tolerations: []
 
 affinity: {}
 
-postgresql:
-  enabled: true
-  instance: 1
-  size: 10Gi
-  recover: false
-  bootstrap:
-    initdb:
-      database: calcom
-      owner: calcom
-  resources:
-    limits:
-      memory: 800Mi
-      cpu: 500m
-    requests:
-      memory: 500Mi
-      cpu: 100m
 
