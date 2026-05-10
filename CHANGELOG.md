@@ -2,6 +2,26 @@
 
 All releases and the changes included in them (pulled from git commits added since last release) will be detailed in this file.
 
+## KubeAid Release Version 28.1.0
+
+### Features
+
+- b057b78b5 feat: use subscribed certname for alert validation in prometheus-linuxaid
+- 8ab26717d feat: inject product and certname labels into alerts in prometheus-linuxaid
+- f891cb2cb feat(hetzner): apiServer.certSANs for control-plane endpoint
+
+### Bug Fixes
+
+- 5d2fa1ed2 fix: fixing prom query
+- 04d6a17c1 fix: let pgsql instance come from cnpg operator instead of hardcoding values
+
+### Other Changes
+
+- 48d3e938f remove redundant blackbox probes in charts.
+- 97ecdf35e remove the postgress template , as we are using from kubeaid-addons so argocd was showing duplicate warning
+- 6c3c31ca3 harbor kubeaid-addons policy
+- af44c7667 docs(netbird): document Keycloak realm prerequisites for external mode
+
 ## KubeAid Release Version 28.0.0
 
 ### New Charts Added
