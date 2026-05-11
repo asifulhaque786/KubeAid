@@ -57,9 +57,13 @@ spec:
     {{- if and .Values.global.postgresql.enabled .Values.global.postgresql.backups.enabled }}
     # S3 via FQDN
     - toFQDNs:
+        {{- if .Values.global.postgresql.backups.endpointURL }}
+        - matchName: {{ .Values.global.postgresql.backups.endpointURL | trimPrefix "https://" | trimPrefix "http://" | quote }}
+        {{- else }}
         - matchPattern: "*.amazonaws.com"
         - matchPattern: "*.s3.amazonaws.com"
         - matchPattern: "*.s3.*.amazonaws.com"
+        {{- end }}
       toPorts:
         - ports:
             - port: "443"
