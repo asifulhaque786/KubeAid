@@ -1,4 +1,4 @@
-{{/* Handling control-plane in HCloud. */}}
+{{/* Control-plane MHC for clusters with the control-plane in HCloud. */}}
 {{- if or (eq .Values.mode "hcloud") (eq .Values.mode "hybrid") }}
 apiVersion: cluster.x-k8s.io/v1beta2
 kind: MachineHealthCheck
@@ -6,14 +6,8 @@ metadata:
   name: {{ .Values.global.clusterName }}-control-plane-unhealthy-5m
 spec:
   clusterName: {{ .Values.global.clusterName }}
-  {{/* CAPI v1beta2 restructured MachineHealthCheck.spec:
-         - unhealthyConditions  → checks.unhealthyNodeConditions
-         - nodeStartupTimeout   → checks.nodeStartupTimeoutSeconds  (duration → int seconds)
-         - timeout              → timeoutSeconds                    (duration → int seconds)
-         - maxUnhealthy         → remediation.triggerIf.unhealthyLessThanOrEqualTo
-       Same values as before, just moved/renamed. */}}
   checks:
-    nodeStartupTimeoutSeconds: 1200
+    nodeStartupTimeoutSeconds: 900
     unhealthyNodeConditions:
     - status: Unknown
       timeoutSeconds: 180
@@ -29,8 +23,9 @@ spec:
       cluster.x-k8s.io/control-plane: ""
 {{- end }}
 
-{{/* Handling control-plane in Hetzner bare-metal. */}}
+{{/* Control-plane MHC for clusters with the control-plane on Hetzner bare-metal. */}}
 {{- if eq .Values.mode "bare-metal" }}
+---
 apiVersion: cluster.x-k8s.io/v1beta2
 kind: MachineHealthCheck
 metadata:
@@ -38,12 +33,7 @@ metadata:
 spec:
   clusterName: {{ .Values.global.clusterName }}
   checks:
-    {{/*
-      Bare-metal startup takes ~30 minutes — socat + mtr apt install
-      is the slow path (both needed for `kubectl port-forward`).
-      3600s (60min) gives ~2x headroom for slow mirrors / retries.
-    */}}
-    nodeStartupTimeoutSeconds: 3600
+    nodeStartupTimeoutSeconds: 900
     unhealthyNodeConditions:
     - status: Unknown
       timeoutSeconds: 180
@@ -57,4 +47,34 @@ spec:
   selector:
     matchLabels:
       cluster.x-k8s.io/control-plane: ""
+{{- end }}
+
+{{/* Worker MHC — one per HCloud nodeGroup, scoped to that group's
+     MachineDeployment via the `nodepool: <cluster>-<nodegroup>` label
+     both this selector and MachineDeployment.metadata.labels share. */}}
+{{- if or (eq .Values.mode "hcloud") (eq .Values.mode "hybrid") }}
+{{- range $nodeGroupIndex, $nodeGroup := $.Values.nodeGroups.hcloud }}
+---
+apiVersion: cluster.x-k8s.io/v1beta2
+kind: MachineHealthCheck
+metadata:
+  name: {{ printf "%s-%s-unhealthy-5m" $.Values.global.clusterName $nodeGroup.name }}
+spec:
+  clusterName: {{ $.Values.global.clusterName }}
+  checks:
+    nodeStartupTimeoutSeconds: 600
+    unhealthyNodeConditions:
+    - status: Unknown
+      timeoutSeconds: 180
+      type: Ready
+    - status: "False"
+      timeoutSeconds: 180
+      type: Ready
+  remediation:
+    triggerIf:
+      unhealthyLessThanOrEqualTo: 100%
+  selector:
+    matchLabels:
+      nodepool: {{ printf "%s-%s" $.Values.global.clusterName $nodeGroup.name }}
+{{- end }}
 {{- end }}
