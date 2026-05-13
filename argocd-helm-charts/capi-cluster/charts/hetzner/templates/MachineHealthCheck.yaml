@@ -39,9 +39,9 @@ spec:
   clusterName: {{ .Values.global.clusterName }}
   checks:
     {{/*
-      Node startup takes about 30 minutes in Hetzner Bare Metal.
-      A major amount of time is eaten up by socat and mtr installation. We need them to be able to do
-      'kubectl port-forward'. nodeStartupTimeoutSeconds: 3600 = 1h, was nodeStartupTimeout: 1h0m0s.
+      Bare-metal startup takes ~30 minutes — socat + mtr apt install
+      is the slow path (both needed for `kubectl port-forward`).
+      3600s (60min) gives ~2x headroom for slow mirrors / retries.
     */}}
     nodeStartupTimeoutSeconds: 3600
     unhealthyNodeConditions:

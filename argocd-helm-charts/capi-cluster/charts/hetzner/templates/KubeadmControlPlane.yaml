@@ -6,58 +6,18 @@ spec:
   kubeadmConfigSpec:
     clusterConfiguration:
       apiServer:
-        # In CAPI v1beta2, extraArgs is []Arg ({name, value} pairs) — not
-        # the map[string]string it was in v1beta1. Same key/value contents
-        # as before, just spelled as a list.
+        # Mirrors upstream CAPH's hcloud-kcp-ubuntu.yaml — only the
+        # kubelet-preferred-address-types flag. The faster-failover
+        # tolerations, profiling, TLS cipher-suites hardening etc. were
+        # carried as kubeaid-side opinion for a long time; they're now
+        # being pushed to upstream via separate Obmondo CAPH PRs
+        # (feat/apiserver-tls-cipher-suites-allowlist, etc.). When
+        # those land, we converge cleanly. Until then, post-bootstrap
+        # security tooling (kube-bench, kubescape, OPA) is the right
+        # layer for enforcement, not chart-side flag pinning.
         extraArgs:
-          - name: authorization-mode
-            value: Node,RBAC
-          - name: client-ca-file
-            value: /etc/kubernetes/pki/ca.crt
-          - name: default-not-ready-toleration-seconds
-            value: "45"
-          - name: default-unreachable-toleration-seconds
-            value: "45"
-          - name: enable-aggregator-routing
-            value: "true"
-          - name: enable-bootstrap-token-auth
-            value: "true"
-          - name: etcd-cafile
-            value: /etc/kubernetes/pki/etcd/ca.crt
-          - name: etcd-certfile
-            value: /etc/kubernetes/pki/etcd/server.crt
-          - name: etcd-keyfile
-            value: /etc/kubernetes/pki/etcd/server.key
-          - name: kubelet-client-certificate
-            value: /etc/kubernetes/pki/apiserver-kubelet-client.crt
-          - name: kubelet-client-key
-            value: /etc/kubernetes/pki/apiserver-kubelet-client.key
-          - name: profiling
-            value: "false"
-          - name: proxy-client-cert-file
-            value: /etc/kubernetes/pki/front-proxy-client.crt
-          - name: proxy-client-key-file
-            value: /etc/kubernetes/pki/front-proxy-client.key
-          - name: requestheader-allowed-names
-            value: front-proxy-client
-          - name: requestheader-client-ca-file
-            value: /etc/kubernetes/pki/front-proxy-ca.crt
-          - name: requestheader-extra-headers-prefix
-            value: X-Remote-Extra-
-          - name: requestheader-group-headers
-            value: X-Remote-Group
-          - name: requestheader-username-headers
-            value: X-Remote-User
-          - name: service-account-key-file
-            value: /etc/kubernetes/pki/sa.pub
-          - name: service-account-lookup
-            value: "true"
-          - name: tls-cert-file
-            value: /etc/kubernetes/pki/apiserver.crt
-          - name: tls-cipher-suites
-            value: TLS_ECDHE_ECDSA_WITH_AES_128_GCM_SHA256,TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256,TLS_ECDHE_ECDSA_WITH_CHACHA20_POLY1305,TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384,TLS_ECDHE_RSA_WITH_CHACHA20_POLY1305,TLS_ECDHE_ECDSA_WITH_AES_256_GCM_SHA384,TLS_RSA_WITH_AES_256_GCM_SHA384,TLS_RSA_WITH_AES_128_GCM_SHA256
-          - name: tls-private-key-file
-            value: /etc/kubernetes/pki/apiserver.key
+          - name: kubelet-preferred-address-types
+            value: ExternalIP,Hostname,InternalDNS,ExternalDNS
         {{/* certSANs lets clients reach kube-apiserver under names other
              than controlPlaneEndpoint.host without tripping x509 errors.
              Includes the LB endpoint hostname plus any operator-supplied
@@ -70,67 +30,15 @@ spec:
           {{- end }}
         {{- end }}
       controllerManager:
+        # Mirrors upstream CAPH — only `cloud-provider: external` (needed
+        # for external HCloud CCM). profiling and terminated-pod-gc-threshold
+        # customizations dropped along with the apiServer trim.
         extraArgs:
-          - name: allocate-node-cidrs
-            value: "true"
-          - name: authentication-kubeconfig
-            value: /etc/kubernetes/controller-manager.conf
-          - name: authorization-kubeconfig
-            value: /etc/kubernetes/controller-manager.conf
-          - name: bind-address
-            value: 0.0.0.0
           - name: cloud-provider
             value: external
-          - name: cluster-signing-cert-file
-            value: /etc/kubernetes/pki/ca.crt
-          - name: cluster-signing-key-file
-            value: /etc/kubernetes/pki/ca.key
-          - name: kubeconfig
-            value: /etc/kubernetes/controller-manager.conf
-          - name: profiling
-            value: "false"
-          - name: requestheader-client-ca-file
-            value: /etc/kubernetes/pki/front-proxy-ca.crt
-          - name: root-ca-file
-            value: /etc/kubernetes/pki/ca.crt
-          - name: secure-port
-            value: "10257"
-          - name: service-account-private-key-file
-            value: /etc/kubernetes/pki/sa.key
-          - name: terminated-pod-gc-threshold
-            value: "10"
-          - name: use-service-account-credentials
-            value: "true"
       etcd:
         local:
           dataDir: /var/lib/etcd
-          extraArgs:
-            - name: auto-tls
-              value: "false"
-            - name: cert-file
-              value: /etc/kubernetes/pki/etcd/server.crt
-            - name: cipher-suites
-              value: TLS_ECDHE_ECDSA_WITH_AES_128_GCM_SHA256,TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256,TLS_ECDHE_ECDSA_WITH_CHACHA20_POLY1305,TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384,TLS_ECDHE_RSA_WITH_CHACHA20_POLY1305,TLS_ECDHE_ECDSA_WITH_AES_256_GCM_SHA384,TLS_RSA_WITH_AES_256_GCM_SHA384,TLS_RSA_WITH_AES_128_GCM_SHA256
-            - name: client-cert-auth
-              value: "true"
-            - name: key-file
-              value: /etc/kubernetes/pki/etcd/server.key
-            - name: peer-auto-tls
-              value: "false"
-            - name: peer-client-cert-auth
-              value: "true"
-            - name: trusted-ca-file
-              value: /etc/kubernetes/pki/etcd/ca.crt
-      scheduler:
-        extraArgs:
-          - name: bind-address
-            value: 0.0.0.0
-          - name: kubeconfig
-            value: /etc/kubernetes/scheduler.conf
-          - name: profiling
-            value: "false"
-          - name: secure-port
-            value: "10259"
     files:
     {{/* Hardened kubelet config delivered as a typed KubeletConfiguration
          file rather than dozens of map-style kubeletExtraArgs. Same
@@ -139,7 +47,7 @@ spec:
          readOnlyPort=0, serverTLSBootstrap=true, explicit cipher-suite
          allow-list) — but with maxPods=120 because control-plane nodes
          are sized smaller and only run system pods. kubelet is pointed
-         at this file via --config in kubeletExtraArgs above. */}}
+         at this file via --config in kubeletExtraArgs below. */}}
     - path: /etc/kubernetes/kubelet/config.yaml
       owner: "root:root"
       permissions: "0644"
@@ -387,11 +295,11 @@ spec:
       {{/*
         User provided commands used to setup the disk layout.
         We recommend the following :
-           
+
           (1) If NVMe, then create a ZPool out of the available storage space.
               That ZPool will be used by Kubernetes ephemeral volumes, pod logs and OpenEBS ZFS
               LocalPV provisioner.
-               
+
           (2) If HDD / regular SSD, then create a partition out of the available storage space,
               allocating it to Rook Ceph.
       */}}
@@ -487,7 +395,7 @@ spec:
       {{- end }}
 
       # Install Helm.
-      - curl https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3 | bash
+      - curl https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-4 | bash
 
       # Clone KubeAid.
       - git clone https://github.com/Obmondo/kubeaid.git
@@ -498,44 +406,51 @@ spec:
       - sudo chown $(id -u):$(id -g) $HOME/.kube/config
 
       # Install Cilium.
-      - kubectl create namespace cilium
+      # `helm install --create-namespace` handles the cilium namespace —
+      # no separate `kubectl create ns` step needed. `--atomic` rolls back
+      # the release if any resource fails to apply or fails to become
+      # Ready within --timeout, so a half-installed Cilium doesn't get
+      # left behind for the next step (CCM install) to choke on.
       - API_SERVER_URL=$(kubectl config view --minify -o jsonpath='{.clusters[0].cluster.server}')
       - API_SERVER_HOST=$(echo "$API_SERVER_URL" | awk -F[/:] '{print $4}')
       - API_SERVER_PORT=$(echo "$API_SERVER_URL" | awk -F[/:] '{print $5}')
 
       - |
-        helm template kubeaid/argocd-helm-charts/cilium \
+        helm install cilium kubeaid/argocd-helm-charts/cilium \
+          --namespace cilium --create-namespace \
+          --atomic --wait --timeout 5m \
           --values kubeaid/argocd-helm-charts/cilium/values.yaml \
           --set cilium.kubeProxyReplacement=true \
           --set cilium.k8sServiceHost=${API_SERVER_HOST} \
           --set cilium.k8sServicePort=${API_SERVER_PORT} \
-          --set-string cilium.extraArgs[0]="--devices=eth0\,enp+\,eno+" \
-          --namespace cilium | kubectl apply -f -
+          --set-string cilium.extraArgs[0]="--devices=eth0\,enp+\,eno+"
 
       {{- if or (eq .Values.mode "hcloud") (eq .Values.mode "hybrid") }}
       # Install HCloud Cloud Controller Manager.
       - |
-        helm template ccm-hcloud kubeaid/argocd-helm-charts/ccm-hcloud \
+        helm install ccm-hcloud kubeaid/argocd-helm-charts/ccm-hcloud \
+          --namespace kube-system \
+          --atomic --wait --timeout 5m \
+          --values kubeaid/argocd-helm-charts/ccm-hcloud/values.yaml \
           --set hcloud-cloud-controller-manager.additionalTolerations[0].key=node.kubernetes.io/not-ready \
           --set hcloud-cloud-controller-manager.additionalTolerations[0].operator=Exists \
           --set hcloud-cloud-controller-manager.additionalTolerations[0].effect=NoSchedule \
           --set hcloud-cloud-controller-manager.env.HCLOUD_LOAD_BALANCERS_NETWORK_ZONE.value={{ .Values.hcloud.zone }} \
           --set hcloud-cloud-controller-manager.networking.enabled=true \
           --set hcloud-cloud-controller-manager.networking.network.valueFrom.secretKeyRef.name=cloud-credentials \
-          --set hcloud-cloud-controller-manager.networking.network.valueFrom.secretKeyRef.key=network \
-          --values kubeaid/argocd-helm-charts/ccm-hcloud/values.yaml \
-          --namespace kube-system | kubectl apply -f -
+          --set hcloud-cloud-controller-manager.networking.network.valueFrom.secretKeyRef.key=network
       {{- end }}
 
       {{- if or (eq .Values.mode "bare-metal") (eq .Values.mode "hybrid") }}
       # Install Hetzner Bare Metal Cloud Controller Manager.
       - |
-        helm template ccm-hetzner kubeaid/argocd-helm-charts/ccm-hetzner \
+        helm install ccm-hetzner kubeaid/argocd-helm-charts/ccm-hetzner \
+          --namespace kube-system \
+          --atomic --wait --timeout 5m \
+          --values kubeaid/argocd-helm-charts/ccm-hetzner/values.yaml \
           {{- if (eq .Values.mode "hybrid") }}
           --set ccm-hetzner.privateNetwork.enabled=true \
           {{- end }}
-          --values kubeaid/argocd-helm-charts/ccm-hetzner/values.yaml \
-          --namespace kube-system | kubectl apply -f -
       {{- end }}
 
       - apt-get -y install socat mtr
