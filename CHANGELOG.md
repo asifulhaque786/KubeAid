@@ -2,6 +2,26 @@
 
 All releases and the changes included in them (pulled from git commits added since last release) will be detailed in this file.
 
+## KubeAid Release Version 29.0.4
+
+### Features
+
+- 4337e369f feat(capi-cluster/hetzner): add worker MachineHealthCheck per HCloud nodeGroup
+- 0d7103f85 feat(capi-cluster/hetzner): trim KubeadmControlPlane to match upstream + helm install refactor
+- 47f426fa8 feat(capi-cluster/hetzner): align MachineDeployment shape with upstream cluster-template
+- 55a8de878 feat(capi-cluster/hetzner): parameterize NAT gateway script values
+- b8e353f57 feat(capi-cluster/hetzner): align kubelet config + runtime versions with upstream CAPH
+- a84e83c77 feat(capi-cluster/hetzner): migrate object refs to apiGroup (CAPI v1beta2)
+- e8c64b013 feat(capi-cluster/hetzner): migrate extraArgs from map to []Arg for CAPI v1beta2
+
+### Bug Fixes
+
+- 8f20df1b1 fix(capi-cluster/hetzner): migrate MachineHealthCheck body to v1beta2 schema
+
+### Other Changes
+
+- 7ba2c1311 refactor(capi-cluster/hetzner): tidy MachineDeployment cluster-autoscaler annotations
+
 ## KubeAid Release Version 29.0.3
 
 ### Bug Fixes
