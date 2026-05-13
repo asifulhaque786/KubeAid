@@ -2,6 +2,12 @@
 
 All releases and the changes included in them (pulled from git commits added since last release) will be detailed in this file.
 
+## KubeAid Release Version 29.0.1
+
+### Bug Fixes
+
+- e60819c46 fix(capi): bump CAPI to v1.11.10 and CAPH to v1.1.3
+
 ## KubeAid Release Version 29.0.0
 
 ### Major Version Upgrades
