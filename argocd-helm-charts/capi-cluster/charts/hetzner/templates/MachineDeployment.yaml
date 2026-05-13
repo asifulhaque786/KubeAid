@@ -2,7 +2,7 @@
 {{- if or (eq .Values.mode "hcloud") (eq .Values.mode "hybrid") }}
 {{- range $nodeGroupIndex, $nodeGroup := $.Values.nodeGroups.hcloud }}
 ---
-apiVersion: cluster.x-k8s.io/v1beta1
+apiVersion: cluster.x-k8s.io/v1beta2
 kind: MachineDeployment
 metadata:
   name: {{ printf "%s-%s" $.Values.global.clusterName $nodeGroup.name }}
@@ -37,7 +37,7 @@ spec:
       version: {{ $.Values.global.kubernetes.version }}
       bootstrap:
         configRef:
-          apiVersion: bootstrap.cluster.x-k8s.io/v1beta1
+          apiVersion: bootstrap.cluster.x-k8s.io/v1beta2
           kind: KubeadmConfigTemplate
           name: {{ printf "%s-%s" $.Values.global.clusterName $nodeGroup.name }}
       infrastructureRef:
