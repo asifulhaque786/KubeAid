@@ -1,7 +1,7 @@
 {{- range $nodeGroupIndex, $nodeGroup := $.Values.nodeGroups }}
 {{/* Since subnets in Azure are region wide, we don't need to worry about failure domains. */}}
 ---
-apiVersion: cluster.x-k8s.io/v1beta1
+apiVersion: cluster.x-k8s.io/v1beta2
 kind: MachineDeployment
 metadata:
   name: {{ printf "%s-%s" $.Values.global.clusterName $nodeGroup.name }}
@@ -34,7 +34,7 @@ spec:
       clusterName: {{ $.Values.global.clusterName }}
       bootstrap:
         configRef:
-          apiVersion: bootstrap.cluster.x-k8s.io/v1beta1
+          apiVersion: bootstrap.cluster.x-k8s.io/v1beta2
           kind: KubeadmConfigTemplate
           name: {{ printf "%s-%s" $.Values.global.clusterName $nodeGroup.name }}
       infrastructureRef:

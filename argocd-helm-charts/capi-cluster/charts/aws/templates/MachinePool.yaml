@@ -1,7 +1,7 @@
 {{- if (.Values.global.capa).enableMachinePools }}
 {{- range $index, $nodeGroup := $.Values.nodeGroups }}
 ---
-apiVersion: cluster.x-k8s.io/v1beta1
+apiVersion: cluster.x-k8s.io/v1beta2
 kind: MachinePool
 metadata:
   name: {{ printf "%s-%s" $.Values.global.clusterName $nodeGroup.name }}
@@ -28,7 +28,7 @@ spec:
     spec:
       bootstrap:
         configRef:
-          apiVersion: bootstrap.cluster.x-k8s.io/v1beta1
+          apiVersion: bootstrap.cluster.x-k8s.io/v1beta2
           kind: KubeadmConfig
           name: {{ printf "%s-%s" $.Values.global.clusterName $nodeGroup.name }}
       clusterName: {{ $.Values.global.clusterName }}

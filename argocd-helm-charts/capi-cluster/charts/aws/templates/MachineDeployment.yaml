@@ -43,7 +43,7 @@
 
   {{- $fdSpecificMaxSize := (add $baseMaxSizePerFD $fdSpecificExtraMaxSize) }}
 
-apiVersion: cluster.x-k8s.io/v1beta1
+apiVersion: cluster.x-k8s.io/v1beta2
 kind: MachineDeployment
 metadata:
   name: {{ printf "%s-%s-%s" $.Values.global.clusterName $nodeGroup.name $failureDomain }}
@@ -76,7 +76,7 @@ spec:
       clusterName: {{ $.Values.global.clusterName }}
       bootstrap:
         configRef:
-          apiVersion: bootstrap.cluster.x-k8s.io/v1beta1
+          apiVersion: bootstrap.cluster.x-k8s.io/v1beta2
           kind: KubeadmConfigTemplate
           name: {{ printf "%s-%s" $.Values.global.clusterName $nodeGroup.name }}
       infrastructureRef:

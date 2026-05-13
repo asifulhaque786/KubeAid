@@ -3,7 +3,7 @@
 {{- range $nodeGroupIndex, $nodeGroup := $.Values.nodeGroups.bareMetal }}
 {{- range $hostIndex, $host := $nodeGroup.bareMetalHosts }}
 ---
-apiVersion: cluster.x-k8s.io/v1beta1
+apiVersion: cluster.x-k8s.io/v1beta2
 kind: Machine
 metadata:
   name: {{ printf "%s-%s-%s" $.Values.global.clusterName $nodeGroup.name $host.serverID }}
@@ -24,7 +24,7 @@ spec:
   version: {{ $.Values.global.kubernetes.version }}
   bootstrap:
     configRef:
-      apiVersion: bootstrap.cluster.x-k8s.io/v1beta1
+      apiVersion: bootstrap.cluster.x-k8s.io/v1beta2
       kind: KubeadmConfig
       name: {{ printf "%s-%s-%s" $.Values.global.clusterName $nodeGroup.name $host.serverID }}
   infrastructureRef:
