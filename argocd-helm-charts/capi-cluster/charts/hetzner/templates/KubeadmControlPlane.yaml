@@ -169,15 +169,32 @@ spec:
           - TLS_RSA_WITH_AES_128_GCM_SHA256
 
     {{- if or (eq .Values.mode "hybrid") (eq .Values.network.type "private") }}
-    {{/* NAT gateway script is only needed when nodes run on a private network. */}}
+    {{/* NAT gateway script is only needed when nodes run on a private network.
+         Gateway IP + DNS resolver come from values so non-default private
+         networks work; the interface name is discovered at runtime so the
+         script also works on bare-metal hosts (eno1, enp3s0, …) and isn't
+         pinned to HCloud's enp7s0. */}}
     - content: |
-        for i in {1..30}; do
-          ip route add default via 10.0.0.1 && break
+        set -eu
+        NAT_GATEWAY_IP="{{ .Values.hcloud.natGatewayIP }}"
+        DNS_SERVER="{{ .Values.hcloud.dnsServer }}"
+
+        ROUTE_ADDED=0
+        for i in $(seq 1 30); do
+          if ip route add default via "$NAT_GATEWAY_IP" 2>/dev/null; then
+            ROUTE_ADDED=1
+            break
+          fi
           sleep 10
         done
+        if [ "$ROUTE_ADDED" -ne 1 ]; then
+          echo "FATAL: could not add default route via $NAT_GATEWAY_IP after 30 retries" >&2
+          exit 1
+        fi
 
-        echo "nameserver 1.1.1.1" | tee -a /etc/resolv.conf
-        resolvectl dns enp7s0 1.1.1.1
+        IFACE=$(ip -o -4 route show default | awk '{print $5; exit}')
+        echo "nameserver $DNS_SERVER" | tee -a /etc/resolv.conf
+        resolvectl dns "$IFACE" "$DNS_SERVER"
       owner: "root:root"
       path: /connect-nat-gateway.sh
       permissions: "0744"
