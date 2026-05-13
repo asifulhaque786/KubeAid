@@ -132,6 +132,41 @@ spec:
           - name: secure-port
             value: "10259"
     files:
+    {{/* Hardened kubelet config delivered as a typed KubeletConfiguration
+         file rather than dozens of map-style kubeletExtraArgs. Same
+         security profile as upstream CAPH's md-0 KubeadmConfigTemplate
+         (anonymous=false, webhook auth/authz, eventRecordQPS=5,
+         readOnlyPort=0, serverTLSBootstrap=true, explicit cipher-suite
+         allow-list) — but with maxPods=120 because control-plane nodes
+         are sized smaller and only run system pods. kubelet is pointed
+         at this file via --config in kubeletExtraArgs above. */}}
+    - path: /etc/kubernetes/kubelet/config.yaml
+      owner: "root:root"
+      permissions: "0644"
+      content: |
+        apiVersion: kubelet.config.k8s.io/v1beta1
+        kind: KubeletConfiguration
+        authentication:
+          anonymous:
+            enabled: false
+          webhook:
+            enabled: true
+        authorization:
+          mode: Webhook
+        eventRecordQPS: 5
+        maxPods: 120
+        readOnlyPort: 0
+        resolvConf: /etc/kubernetes/resolv.conf
+        serverTLSBootstrap: true
+        tlsCipherSuites:
+          - TLS_ECDHE_ECDSA_WITH_AES_128_GCM_SHA256
+          - TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256
+          - TLS_ECDHE_ECDSA_WITH_CHACHA20_POLY1305
+          - TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384
+          - TLS_ECDHE_RSA_WITH_CHACHA20_POLY1305
+          - TLS_ECDHE_ECDSA_WITH_AES_256_GCM_SHA384
+          - TLS_RSA_WITH_AES_256_GCM_SHA384
+          - TLS_RSA_WITH_AES_128_GCM_SHA256
 
     {{- if or (eq .Values.mode "hybrid") (eq .Values.network.type "private") }}
     {{/* NAT gateway script is only needed when nodes run on a private network. */}}
@@ -292,53 +327,17 @@ spec:
         - addon/kube-proxy
       nodeRegistration:
         kubeletExtraArgs:
-          - name: anonymous-auth
-            value: "false"
-          - name: authentication-token-webhook
-            value: "true"
-          - name: authorization-mode
-            value: Webhook
           - name: cloud-provider
             value: external
-          - name: event-qps
-            value: "5"
-          - name: kubeconfig
-            value: /etc/kubernetes/kubelet.conf
-          - name: max-pods
-            value: "120"
-          - name: read-only-port
-            value: "0"
-          - name: resolv-conf
-            value: /etc/kubernetes/resolv.conf
-          - name: rotate-server-certificates
-            value: "true"
-          - name: tls-cipher-suites
-            value: TLS_ECDHE_ECDSA_WITH_AES_128_GCM_SHA256,TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256,TLS_ECDHE_ECDSA_WITH_CHACHA20_POLY1305,TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384,TLS_ECDHE_RSA_WITH_CHACHA20_POLY1305,TLS_ECDHE_ECDSA_WITH_AES_256_GCM_SHA384,TLS_RSA_WITH_AES_256_GCM_SHA384,TLS_RSA_WITH_AES_128_GCM_SHA256
+          - name: config
+            value: /etc/kubernetes/kubelet/config.yaml
     joinConfiguration:
       nodeRegistration:
         kubeletExtraArgs:
-          - name: anonymous-auth
-            value: "false"
-          - name: authentication-token-webhook
-            value: "true"
-          - name: authorization-mode
-            value: Webhook
           - name: cloud-provider
             value: external
-          - name: event-qps
-            value: "5"
-          - name: kubeconfig
-            value: /etc/kubernetes/kubelet.conf
-          - name: max-pods
-            value: "120"
-          - name: read-only-port
-            value: "0"
-          - name: resolv-conf
-            value: /etc/kubernetes/resolv.conf
-          - name: rotate-server-certificates
-            value: "true"
-          - name: tls-cipher-suites
-            value: TLS_ECDHE_ECDSA_WITH_AES_128_GCM_SHA256,TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256,TLS_ECDHE_ECDSA_WITH_CHACHA20_POLY1305,TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384,TLS_ECDHE_RSA_WITH_CHACHA20_POLY1305,TLS_ECDHE_ECDSA_WITH_AES_256_GCM_SHA384,TLS_RSA_WITH_AES_256_GCM_SHA384,TLS_RSA_WITH_AES_128_GCM_SHA256
+          - name: config
+            value: /etc/kubernetes/kubelet/config.yaml
     {{- if (gt (len $.Values.global.additionalUsers) 0) }}
     users:
       {{- range $index, $additionalUser := $.Values.global.additionalUsers }}
@@ -388,7 +387,7 @@ spec:
         ./kubeaid-storagectl plan execute --os-size {{ $.Values.bareMetal.installImage.vg0.size }} --zfs-pool-size {{ $.Values.controlPlane.bareMetal.zfs.size }}
       {{- end }}
 
-      - export CONTAINERD=2.1.3
+      - export CONTAINERD=2.2.3
       - export RUNC=1.2.5
       - export KUBERNETES_VERSION=$(echo {{ $.Values.global.kubernetes.version }} | sed 's/^v//')
       - export TRIMMED_KUBERNETES_VERSION=$(echo ${KUBERNETES_VERSION} | sed 's/^v//' | awk -F . '{print $1 "." $2}')
